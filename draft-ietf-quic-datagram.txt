@@ -5,13 +5,13 @@
 Network Working Group                                           T. Pauly
 Internet-Draft                                                E. Kinnear
 Intended status: Standards Track                              Apple Inc.
-Expires: May 2, 2020                                         D. Schinazi
+Expires: 29 August 2020                                      D. Schinazi
                                                               Google LLC
-                                                        October 30, 2019
+                                                        26 February 2020
 
 
                 An Unreliable Datagram Extension to QUIC
-                    draft-pauly-quic-datagram-latest
+                    draft-ietf-quic-datagram-latest
 
 Abstract
 
@@ -20,9 +20,9 @@ Abstract
    QUIC connection.
 
    Discussion of this work is encouraged to happen on the QUIC IETF
-   mailing list quic@ietf.org [1] or on the GitHub repository which
-   contains the draft: https://github.com/tfpauly/draft-pauly-quic-
-   datagram [2].
+   mailing list quic@ietf.org (mailto:quic@ietf.org) or on the GitHub
+   repository which contains the draft: https://github.com/quicwg/
+   datagram (https://github.com/quicwg/datagram).
 
 Status of This Memo
 
@@ -39,50 +39,40 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on May 2, 2020.
+   This Internet-Draft will expire on 29 August 2020.
 
 Copyright Notice
 
-   Copyright (c) 2019 IETF Trust and the persons identified as the
+   Copyright (c) 2020 IETF Trust and the persons identified as the
    document authors.  All rights reserved.
 
    This document is subject to BCP 78 and the IETF Trust's Legal
-   Provisions Relating to IETF Documents
-   (https://trustee.ietf.org/license-info) in effect on the date of
-   publication of this document.  Please review these documents
-
-
-
-Pauly, et al.              Expires May 2, 2020                  [Page 1]
-
-Internet-Draft               QUIC Datagrams                 October 2019
-
-
-   carefully, as they describe your rights and restrictions with respect
-   to this document.  Code Components extracted from this document must
-   include Simplified BSD License text as described in Section 4.e of
-   the Trust Legal Provisions and are provided without warranty as
-   described in the Simplified BSD License.
+   Provisions Relating to IETF Documents (https://trustee.ietf.org/
+   license-info) in effect on the date of publication of this document.
+   Please review these documents carefully, as they describe your rights
+   and restrictions with respect to this document.  Code Components
+   extracted from this document must include Simplified BSD License text
+   as described in Section 4.e of the Trust Legal Provisions and are
+   provided without warranty as described in the Simplified BSD License.
 
 Table of Contents
 
-   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
-     1.1.  Specification of Requirements . . . . . . . . . . . . . .   3
-   2.  Motivation  . . . . . . . . . . . . . . . . . . . . . . . . .   3
-   3.  Transport Parameter . . . . . . . . . . . . . . . . . . . . .   4
-   4.  Datagram Frame Type . . . . . . . . . . . . . . . . . . . . .   5
-   5.  Behavior and Usage  . . . . . . . . . . . . . . . . . . . . .   5
-     5.1.  Acknowledgement Handling  . . . . . . . . . . . . . . . .   6
-     5.2.  Flow Control  . . . . . . . . . . . . . . . . . . . . . .   6
-     5.3.  Congestion Control  . . . . . . . . . . . . . . . . . . .   6
-   6.  Security Considerations . . . . . . . . . . . . . . . . . . .   7
-   7.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .   7
-   8.  Acknowledgments . . . . . . . . . . . . . . . . . . . . . . .   7
-   9.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   8
-     9.1.  Normative References  . . . . . . . . . . . . . . . . . .   8
-     9.2.  Informative References  . . . . . . . . . . . . . . . . .   8
-     9.3.  URIs  . . . . . . . . . . . . . . . . . . . . . . . . . .   8
-   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .   9
+   1.  Introduction
+       1.1.  Specification of Requirements
+   2.  Motivation
+   3.  Transport Parameter
+   4.  Datagram Frame Type
+   5.  Behavior and Usage
+       5.1.  Acknowledgement Handling
+       5.2.  Flow Control
+       5.3.  Congestion Control
+   6.  Security Considerations
+   7.  IANA Considerations
+   8.  Acknowledgments
+   9.  References
+       9.1.  Normative References
+       9.2.  Informative References
+   Authors' Addresses
 
 1.  Introduction
 
@@ -100,22 +90,13 @@ Table of Contents
    datagrams, with the added benefit of sharing a cryptographic and
    authentication context used for reliable streams.
 
-   This document defines four new DATAGRAM QUIC frame types, which carry
+   This document defines two new DATAGRAM QUIC frame types, which carry
    application data without requiring retransmissions.
 
    Discussion of this work is encouraged to happen on the QUIC IETF
-   mailing list quic@ietf.org [3] or on the GitHub repository which
-
-
-
-
-Pauly, et al.              Expires May 2, 2020                  [Page 2]
-
-Internet-Draft               QUIC Datagrams                 October 2019
-
-
-   contains the draft: https://github.com/tfpauly/draft-pauly-quic-
-   datagram [4].
+   mailing list quic@ietf.org (mailto:quic@ietf.org) or on the GitHub
+   repository which contains the draft: https://github.com/quicwg/
+   datagram (https://github.com/quicwg/datagram).
 
 1.1.  Specification of Requirements
 
@@ -130,19 +111,22 @@ Internet-Draft               QUIC Datagrams                 October 2019
    Transmitting unreliable data over QUIC provides benefits over
    existing solutions:
 
-   o  Applications that open both a reliable TLS stream and an
+   *  Applications that open both a reliable TLS stream and an
       unreliable DTLS flow to the same peer can benefit by sharing a
       single handshake and authentication context between a reliable
       QUIC stream and flow of unreliable QUIC datagrams.  This can
       reduce the latency required for handshakes.
 
-   o  QUIC uses a more nuanced loss recovery mechanism than the DTLS
+   *  QUIC uses a more nuanced loss recovery mechanism than the DTLS
       handshake, which has a basic packet loss retransmission timer.
       This may allow loss recovery to occur more quickly for QUIC data.
 
-   o  QUIC datagrams, while unreliable, can support acknowledgements,
+   *  QUIC datagrams, while unreliable, can support acknowledgements,
       allowing applications to be aware of whether a datagram was
       successfully received.
+
+   *  QUIC datagrams are subject to QUIC congestion control, allowing
+      applications to avoid implementing their own.
 
    These reductions in connection latency, and application insight into
    the delivery of datagrams, can be useful for optimizing audio/video
@@ -157,18 +141,6 @@ Internet-Draft               QUIC Datagrams                 October 2019
    the control data, and DTLS for tunneling IP packets.  A single QUIC
    connection could support both parts with the use of unreliable
    datagrams.
-
-
-
-
-
-
-
-
-Pauly, et al.              Expires May 2, 2020                  [Page 3]
-
-Internet-Draft               QUIC Datagrams                 October 2019
-
 
 3.  Transport Parameter
 
@@ -216,16 +188,6 @@ Internet-Draft               QUIC Datagrams                 October 2019
    protocol can fail the handshake if the max_datagram_frame_size
    transport parameter is not present.
 
-
-
-
-
-
-Pauly, et al.              Expires May 2, 2020                  [Page 4]
-
-Internet-Draft               QUIC Datagrams                 October 2019
-
-
 4.  Datagram Frame Type
 
    DATAGRAM frames are used to transmit application data in an
@@ -250,11 +212,12 @@ Internet-Draft               QUIC Datagrams                 October 2019
 
    DATAGRAM frames contain the following fields:
 
-   Length:  A variable-length integer specifying the length of the
-      datagram in bytes.  This field is present only when the LEN bit is
-      set.  If the LEN bit is not set, the datagram data extends to the
-      end of the QUIC packet.  Note that empty (i.e., zero-length)
-      datagrams are allowed.
+   Length:         A variable-length integer specifying the length of
+                   the datagram in bytes.  This field is present only
+                   when the LEN bit is set.  If the LEN bit is not set,
+                   the datagram data extends to the end of the QUIC
+                   packet.  Note that empty (i.e., zero-length)
+                   datagrams are allowed.
 
    Datagram Data:  The bytes of the datagram to be delivered.
 
@@ -274,14 +237,6 @@ Internet-Draft               QUIC Datagrams                 October 2019
    Application protocols using datagrams are responsible for defining
    the semantics of the Datagram Data field, and how it is parsed.  If
    the application protocol supports the coexistence of multiple
-
-
-
-Pauly, et al.              Expires May 2, 2020                  [Page 5]
-
-Internet-Draft               QUIC Datagrams                 October 2019
-
-
    entities using datagrams inside a single QUIC connection, it may need
    a mechanism to allow demultiplexing between them.  For example, using
    datagrams with HTTP/3 involves prepending a flow identifier to all
@@ -327,22 +282,13 @@ Internet-Draft               QUIC Datagrams                 October 2019
 
 5.3.  Congestion Control
 
-   DATAGRAM frames are subject to a QUIC connection's congestion
-   control.  Specifically, if a DATAGRAM frame is enqueued to be sent by
-   the application, but sending a packet with this frame is not allowed
-
-
-
-Pauly, et al.              Expires May 2, 2020                  [Page 6]
-
-Internet-Draft               QUIC Datagrams                 October 2019
-
-
-   by the congestion control window as specified in
-   [I-D.ietf-quic-recovery], the packet cannot be sent.  The sender
-   implementation MUST either drop the frame without sending it (at
-   which point it MAY notify the application) or else delay sending the
-   frame until the window opens.
+   DATAGRAM frames employ the QUIC connection's congestion controller.
+   As a result, a connection may be unable to send a DATAGRAM frame
+   generated by the application until the congestion controller allows
+   it [I-D.ietf-quic-recovery].  The sender implementation MUST
+   either delay sending the frame until the controller allows it or drop
+   the frame without sending it (at which point it MAY notify the
+   application).
 
    Implementations can optionally support allowing the application to
    specify a sending expiration time, beyond which a congestion-
@@ -360,22 +306,23 @@ Internet-Draft               QUIC Datagrams                 October 2019
    This document registers a new value in the QUIC Transport Parameter
    Registry:
 
-   Value:  0x0020 (if this document is approved)
+   Value:           0x0020 (if this document is approved)
 
    Parameter Name:  max_datagram_frame_size
 
-   Specification:  Indicates that the connection should enable support
-      for unreliable DATAGRAM frames.  An endpoint that advertises this
-      transport parameter can receive datagrams frames from the other
-      endpoint, up to and including the length in bytes provided in the
-      transport parameter.
+   Specification:   Indicates that the connection should enable support
+                    for unreliable DATAGRAM frames.  An endpoint that
+                    advertises this transport parameter can receive
+                    datagrams frames from the other endpoint, up to and
+                    including the length in bytes provided in the
+                    transport parameter.
 
    This document also registers a new value in the QUIC Frame Type
    registry:
 
-   Value:  0x30 and 0x31 (if this document is approved)
+   Value:          0x30 and 0x31 (if this document is approved)
 
-   Frame Name:  DATAGRAM
+   Frame Name:     DATAGRAM
 
    Specification:  Unreliable application data
 
@@ -383,37 +330,32 @@ Internet-Draft               QUIC Datagrams                 October 2019
 
    Thanks to Ian Swett, who inspired this proposal.
 
-
-
-
-
-
-
-Pauly, et al.              Expires May 2, 2020                  [Page 7]
-
-Internet-Draft               QUIC Datagrams                 October 2019
-
-
 9.  References
 
 9.1.  Normative References
 
    [I-D.ietf-quic-recovery]
               Iyengar, J. and I. Swett, "QUIC Loss Detection and
-              Congestion Control", draft-ietf-quic-recovery-23 (work in
-              progress), September 2019.
+              Congestion Control", draft-ietf-quic-recovery-26 (work in
+              progress), 21 February 2020,
+              <http://www.ietf.org/internet-drafts/draft-ietf-quic-
+              recovery-26.txt>.
 
    [I-D.ietf-quic-transport]
               Iyengar, J. and M. Thomson, "QUIC: A UDP-Based Multiplexed
-              and Secure Transport", draft-ietf-quic-transport-23 (work
-              in progress), September 2019.
+              and Secure Transport", draft-ietf-quic-transport-27 (work
+              in progress), 21 February 2020,
+              <http://www.ietf.org/internet-drafts/draft-ietf-quic-
+              transport-27.txt>.
 
 9.2.  Informative References
 
    [I-D.schinazi-quic-h3-datagram]
               Schinazi, D., "Using QUIC Datagrams with HTTP/3", draft-
-              schinazi-quic-h3-datagram-01 (work in progress), October
-              2019.
+              schinazi-quic-h3-datagram-02 (work in progress), 4
+              November 2019,
+              <http://www.ietf.org/internet-drafts/draft-schinazi-quic-
+              h3-datagram-02.txt>.
 
    [RFC0768]  Postel, J., "User Datagram Protocol", STD 6, RFC 768,
               DOI 10.17487/RFC0768, August 1980,
@@ -432,30 +374,12 @@ Internet-Draft               QUIC Datagrams                 October 2019
               2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
               May 2017, <https://www.rfc-editor.org/info/rfc8174>.
 
-9.3.  URIs
-
-   [1] mailto:quic@ietf.org
-
-   [2] https://github.com/tfpauly/draft-pauly-quic-datagram
-
-   [3] mailto:quic@ietf.org
-
-   [4] https://github.com/tfpauly/draft-pauly-quic-datagram
-
-
-
-
-Pauly, et al.              Expires May 2, 2020                  [Page 8]
-
-Internet-Draft               QUIC Datagrams                 October 2019
-
-
 Authors' Addresses
 
    Tommy Pauly
    Apple Inc.
    One Apple Park Way
-   Cupertino, California 95014
+   Cupertino, California 95014,
    United States of America
 
    Email: tpauly@apple.com
@@ -464,7 +388,7 @@ Authors' Addresses
    Eric Kinnear
    Apple Inc.
    One Apple Park Way
-   Cupertino, California 95014
+   Cupertino, California 95014,
    United States of America
 
    Email: ekinnear@apple.com
@@ -473,32 +397,7 @@ Authors' Addresses
    David Schinazi
    Google LLC
    1600 Amphitheatre Parkway
-   Mountain View, California 94043
+   Mountain View, California 94043,
    United States of America
 
    Email: dschinazi.ietf@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Pauly, et al.              Expires May 2, 2020                  [Page 9]
